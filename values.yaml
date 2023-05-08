@@ -45,6 +45,7 @@ mq:
   storageSize: 128Mi
   username: mquser
   password: 3yyerWGdds43yegGR
+  existingClaim: false
   RWX:
     storageClassName: ""
 
