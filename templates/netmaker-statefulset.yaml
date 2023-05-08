@@ -36,18 +36,16 @@ spec:
             topologyKey: "kubernetes.io/hostname"
       containers:
       - env:
+        - name: BROKER_ENDPOINT
+          value: wss://broker.{{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}
         - name: SERVER_NAME
-          value: broker.{{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}
+          value: {{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}
+        - name: STUN_LIST
+          value: stun.{{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}:3478,stun1.netmaker.io:3478,stun2.netmaker.io:3478,stun1.l.google.com:19302,stun2.l.google.com:19302"
+        - name: SERVER_HOST
+          value: api.{{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}
         - name: SERVER_API_CONN_STRING
           value: api.{{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}:443
-        - name: SERVER_HTTP_HOST
-          value: api.{{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}
-        - name: API_PORT
-          value: "8081"
-        {{- if not .Values.wireguard.kernel }}
-        - name: WG_QUICK_USERSPACE_IMPLEMENTATION
-          value: wireguard-go
-        {{- end }}
         {{- if .Values.dns.enabled }}
         - name: DNS_MODE
           value: "on"
@@ -57,17 +55,20 @@ spec:
         - name: DNS_MODE
           value: "off"
         {{- end }}
-        - name: CLIENT_MODE
-          value: "on"
+        - name: SERVER_HTTP_HOST
+          value: api.{{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}
+        - name: NETCLIENT_AUTO_UPDATE
+          value: enabled
+        - name: API_PORT
+          value: "8081"
         - name: MASTER_KEY
           value: {{ include "netmaker.masterKey" . }}
         - name: CORS_ALLOWED_ORIGIN
           value: '*'
-        - name: NODE_ID
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
+        - name: DISPLAY_KEYS
+          value: "on"
+        - name: DATABASE
+          value: postgres
         - name: SQL_HOST
           {{- if index .Values "postgresql-ha" "enabled" }}
           value: '{{ .Release.Name }}-postgresql-ha-pgpool.{{ .Release.Namespace }}.svc.cluster.local'
@@ -82,22 +83,46 @@ spec:
           value: {{ index .Values "postgresql-ha" "postgresql" "username" }}
         - name: SQL_PASS
           value: {{ index .Values "postgresql-ha" "postgresql" "password" }}
-        - name: DATABASE
-          value: postgres
-        - name: DISPLAY_KEYS
-          value: "on"
-        - name: MQ_HOST
-          value: {{ include "netmaker.fullname" . }}-mqtt
-        - name: MQ_PORT
-          value: "{{ .Values.service.mqPort }}"
-        - name: MQ_SERVER_PORT
-          value: "1883"
-        - name: MQ_ADMIN_PASSWORD
-          value: {{ .Values.mq.password }}
-        - name: PLATFORM
-          value: "Kubernetes"
+        - name: NODE_ID
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: SERVER_BROKER_ENDPOINT
+          value: ws://{{ include "netmaker.fullname" . }}-mqtt:1883
         - name: VERBOSITY
           value: "3"
+        - name: MQ_PASSWORD
+          value: {{ .Values.mq.password }}
+        - name: MQ_USERNAME
+          value: {{ .Values.mq.username }}
+        - name: STUN_PORT
+          value: "3478"
+        - name: DEFAULT_PROXY_MODE
+          value: "off"
+        - name: TURN_SERVER_HOST
+          value: turn.{{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}
+        - name: TURN_SERVER_API_HOST
+          value: turnapi.{{ required "A valid .Values.baseDomain entry required!" .Values.baseDomain}}
+        - name: TURN_PORT
+          value: "3479"
+        # TODO: fix with vars
+        - name: TURN_USERNAME
+          value: "turnuser"
+        - name: TURN_PASSWORD
+          value: "turnpass"
+        - name: USE_TURN
+          value: "true"
+        {{- if not .Values.wireguard.kernel }}
+        - name: WG_QUICK_USERSPACE_IMPLEMENTATION
+          value: wireguard-go
+        {{- end }}
+        # - name: MQ_PORT
+        #   value: "{{ .Values.service.mqPort }}"
+        # - name: MQ_SERVER_PORT
+        #   value: "1883"
+        - name: PLATFORM
+          value: "Kubernetes"
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: {{ include "netmaker.fullname" . }}

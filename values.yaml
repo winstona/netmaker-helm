@@ -11,7 +11,7 @@ image:
   # -- Pull Policy for images
   pullPolicy: Always
   # -- Override the image tag to pull
-  tag: "v0.17.1"
+  tag: "v0.19.0"
 
 # -- override the name for netmaker objects
 nameOverride: ""
@@ -43,6 +43,7 @@ mq:
   replicas: 2
   singlenode: false
   storageSize: 128Mi
+  username: mquser
   password: 3yyerWGdds43yegGR
   RWX:
     storageClassName: ""
