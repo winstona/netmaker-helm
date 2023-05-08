@@ -86,9 +86,9 @@ spec:
       - name: shared-data
         persistentVolumeClaim:
         {{- if not .Values.mq.existingClaim }}
-          claimName: {{ .Values.mq.existingClaim }}
-        {{- else }} 
           claimName: {{ include "netmaker.fullname" . }}-shared-data-pvc
+        {{- else }}
+          claimName: {{ .Values.mq.existingClaim }}
         {{- end }}
 ---
 apiVersion: v1
